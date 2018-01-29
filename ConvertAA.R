@@ -94,13 +94,13 @@ return(list(Original,FinalConverted,AAsequence,number_of_palindromes))
 }
 
 #this takes a fasta file location and executes the script on each entry
-processFile = function(filepath) {
+processFile = function(filepath,prob_of_change) {
   fasta_data <- read.fasta(file = filepath, as.string = TRUE)
   number_of_seqs = length(fasta_data)
   i = 1
   results = list()
   while ( i <= number_of_seqs ) {
-    results[[i]] <- append(process_sequence(toupper(fasta_data[[i]][1]),CodonUsage,0),list(fasta_data[[i]][1],attr(fasta_data[[i]],'name')))
+    results[[i]] <- append(process_sequence(toupper(fasta_data[[i]][1]),CodonUsage,prob_of_change),list(fasta_data[[i]][1],attr(fasta_data[[i]],'name')))
     i = i + 1
   }
   return(results)
@@ -126,17 +126,18 @@ printResults = function(results,filepath) {
 args = commandArgs(trailingOnly=TRUE)
 filepath = 'exampleSeqs.txt'
 codon_file = "CodonUsage.csv"
+prob_of_change = 1
 if (length(args)==0) {
-  stop("Usage: Rscript ConvertAA.R [input.fasta] [OPTIONAL codon.csv, format UUU,F,0.46,17.6,-714298]", call.=FALSE)
+  stop("Usage: Rscript ConvertAA.R [input.fasta] [prob_of_change, default=1]", call.=FALSE)
 } else if (length(args)==1) {
   # default output file
   filepath = args[1]
 } else if (length(args)==2){
   filepath = args[1]
-  codon_file = args[2]
+  prob_of_change = args[2]
 }
 CodonUsage <- read_csv(codon_file, col_names = FALSE,col_types = cols())
 colnames(CodonUsage) <- c('codon','AA','fraction','frequency','number')
-results <- processFile(filepath)
+results <- processFile(filepath,prob_of_change)
 outfile_path <- printResults(results,filepath)
 write(paste("Output be found in: ",outfile_path), stderr())
